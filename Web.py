@@ -68,6 +68,10 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv if rv else None) if one else rv
 
+def query_db2(query, args):
+    cur = db().execute(query, args)
+    db().commit()
+    cur.close()
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
@@ -95,6 +99,15 @@ def show_categories():
         print_cats.append(cats)
     return print_cats
 
+def print_maincategories():
+    print_cats = []
+    for row in query_db('SELECT id, name FROM categories'):
+        cat = {}
+        cat["id"] = row["id"]
+        cat["name"] = row["name"]
+        print_cats.append(cat)
+    return print_cats
+
 def print_subcategories():
     print_cats = []
     for row in query_db('SELECT id, name FROM sub_categories'):
@@ -103,6 +116,15 @@ def print_subcategories():
         cat["name"] = row["name"]
         print_cats.append(cat)
     return print_cats
+
+def print_users():
+    print_users = []
+    for row in query_db('SELECT id, username FROM users'):
+        user = {}
+        user["id"] = row["id"]
+        user["name"] = row["username"]
+        print_users.append(user)
+    return print_users
 
 def db_stats():
     stats = []
@@ -141,7 +163,7 @@ def index():
 
 @app.route('/admin/')
 @app.route('/admin/<page>/')
-@app.route('/admin/<page>/<task>/')
+@app.route('/admin/<page>/<task>/', methods=['GET', 'POST'])
 def adminpanel(page=None, task=None):
     user = get_user()
     if not check_if_login() or user[0]["privileges"] == 0:
@@ -150,25 +172,50 @@ def adminpanel(page=None, task=None):
     if page == None:
         return render_template('adminpanel.html', app_settings=app_settings(), stats=db_stats())
     elif page == 'categories':
-        if task == None:
-            return render_template('/admin/categories.html', app_settings=app_settings(), categorys=show_categories())
-        elif task == 'add':
+        if task == 'addm' and request.method == 'POST':
             return render_template('/admin/categories.html', app_settings=app_settings())
-        elif task == 'edit':
+        elif task == 'add' and request.method == 'POST':
             return render_template('/admin/categories.html', app_settings=app_settings())
-        elif task == 'delete':
+        elif task == 'edit' and request.method == 'POST':
             return render_template('/admin/categories.html', app_settings=app_settings())
+        elif task == 'delete' and request.method == 'POST':
+            return render_template('/admin/categories.html', app_settings=app_settings())
+        else:
+            return render_template('/admin/categories.html', app_settings=app_settings(), categorys=show_categories(), mcats=print_maincategories())
     elif page == 'users':
-        if task == None:
+        if task == 'add' and request.method == 'POST':
+            username = request.form["username"]
+            password = hashlib.md5(request.form["password"].encode('utf8')).hexdigest()
+            privilege = request.form["privilege"]
+            if username == "" or password == "":
+                msg = "Моля попълнете всички полета"
+            else:
+                msg = "Потребителя е добавен"
+                query_db2("INSERT INTO users (username, password, privileges) VALUES (?, ?, ?)", [username, password, privilege])
+            return render_template('/admin/users.html', app_settings=app_settings(), users=print_users(), msg=msg)
+        elif task == 'edit' and request.method == 'POST':
             return render_template('/admin/users.html', app_settings=app_settings())
-        elif task == 'add':
+        elif task == 'delete' and request.method == 'POST':
             return render_template('/admin/users.html', app_settings=app_settings())
-        elif task == 'edit':
-            return render_template('/admin/users.html', app_settings=app_settings())
-        elif task == 'delete':
-            return render_template('/admin/users.html', app_settings=app_settings())
+        else:
+            return render_template('/admin/users.html', app_settings=app_settings(), users=print_users())
     elif page == 'topics':
-        return render_template('/admin/topics.html', app_settings=app_settings(), subcats=print_subcategories())
+        if task == 'add' and request.method == 'POST':
+            title = request.form['title']
+            text = request.form['text']
+            cat = request.form['cat']
+            if title == "" or text == "":
+                msg = "Моля попълнете всички полета"
+            else:
+                msg = "Темата е добавена"
+                query_db2("INSERT INTO topics (title, text, cat) VALUES (?, ?, ?)", [title, text, cat])
+            return render_template('/admin/topics.html', app_settings=app_settings(), msg=msg, subcats=print_subcategories())
+        elif task == 'edit' and request.method == 'POST':
+            return render_template('/admin/topics.html', app_settings=app_settings())
+        elif task == 'delete' and request.method == 'POST':
+            return render_template('/admin/topics.html', app_settings=app_settings())
+        else:
+            return render_template('/admin/topics.html', app_settings=app_settings(), subcats=print_subcategories())
 
 @app.route('/logout/')
 def logout():
