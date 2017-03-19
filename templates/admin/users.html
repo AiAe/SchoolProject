@@ -26,12 +26,62 @@
 </nav>
 <div class="container">
     <div class="col-md-11">
+        {% if msg %}
+        <div class="alert alert-dismissible alert-info">
+            {{ msg }}
+        </div>
+        {% endif %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <h3 class="panel-title">Потребители</h3>
             </div>
             <div class="panel-body">
-                text
+                <ul class="list-group">
+                    {% for row in users %}
+                    <li class="list-group-item">
+                        {{ row["name"] }}
+                        <div style="float: right;">
+                            <a href='/admin/users/edit/{{ row["id"] }}'><span class="label label-default">Редактирай</span></a>
+                            <a href='/admin/users/delete/{{ row["id"] }}'><span class="label label-default">Изтрий</span></a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Нов потребител</h3>
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal" method="post" action="/admin/users/add/">
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label">Потребителско име</label>
+                        <div class="col-lg-10">
+                            <input type="text" class="form-control" name="username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label">Парола</label>
+                        <div class="col-lg-10">
+                            <input type="password" class="form-control" name="password">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label">Привилегии</label>
+                        <div class="col-lg-10">
+                            <select class="form-control" name="privilege">
+                                <option value='0'>Потребител</option>
+                                <option value='1'>Админ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-10 col-lg-offset-2">
+                            <input type="submit" name="submit" class="btn btn-primary" value="Добави">
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
