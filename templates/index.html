@@ -26,11 +26,11 @@
 </nav>
 <div class="container">
     <div class="col-md-3">
-        {% for row in categorys %}
+        {% for row in categories %}
         <div class="list-group">
             <a href="#" class="list-group-item active">{{ row["name"] }}</a>
             {% for row2 in row["sub"] %}
-                <a href="/categorys/{{ row2["id"] }}" class="list-group-item">{{ row2["name"] }}</a>
+                <a href='/categories/{{ row2["id"] }}' class="list-group-item">{{ row2["name"] }}</a>
             {% endfor %}
         </div>
         {% endfor %}

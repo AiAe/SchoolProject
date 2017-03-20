@@ -25,7 +25,7 @@
     </div>
 </nav>
 <div class="container">
-    <div class="col-md-11">
+    <div class="col-md-12">
         {% if msg %}
         <div class="alert alert-dismissible alert-info">
             {{ msg }}
@@ -39,7 +39,7 @@
                 <ul class="list-group">
                     {% for row in users %}
                     <li class="list-group-item">
-                        {{ row["name"] }}
+                        {{ row["name"] }} <span class="label label-info">{{ row["privileges"] }}</span>
                         <div style="float: right;">
                             <a href='/admin/users/edit/{{ row["id"] }}'><span class="label label-default">Редактирай</span></a>
                             <a href='/admin/users/delete/{{ row["id"] }}'><span class="label label-default">Изтрий</span></a>

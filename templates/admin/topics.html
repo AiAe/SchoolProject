@@ -25,7 +25,7 @@
     </div>
 </nav>
 <div class="container">
-    <div class="col-md-11">
+    <div class="col-md-12">
         {% if msg %}
         <div class="alert alert-dismissible alert-info">
             {{ msg }}
@@ -36,7 +36,7 @@
                 <h3 class="panel-title">Добави урок</h3>
             </div>
             <div class="panel-body">
-                <form class="form-horizontal" method="post" action="/admin/topics/add/">
+                <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/admin/topics/add/">
                     <div class="form-group">
                         <label class="col-lg-2 control-label">Заглавие</label>
                         <div class="col-lg-10">
@@ -60,6 +60,16 @@
                             </select>
                         </div>
                     </div>
+					<div class="form-group">
+					    <label class="col-lg-2 control-label">Качване на файл</label>
+					    <div class="col-lg-10">
+					    <span class="btn btn-default fileinput-button">
+							<i class="glyphicon glyphicon-plus"></i>
+							<span>Избери файл</span>
+							<input type="file" name="file">
+						</span>
+						</div>
+					</div>
                     <div class="form-group">
                         <div class="col-lg-10 col-lg-offset-2">
                             <input type="submit" name="submit" class="btn btn-primary" value="Публикувай">
