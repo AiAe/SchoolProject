@@ -8,7 +8,7 @@ import functions, arrays
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'content'
+app.config['UPLOAD_FOLDER'] = './content/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def app_settings():
@@ -20,7 +20,7 @@ def app_settings():
         {"url" : "/", "name" : "Начало"},
     ]
 
-    if user[0]["privileges"] == 1:
+    if is_login and user[0]["privileges"] == 1:
         menu += [
             {"url": "/admin", "name": "Админ панел"}
         ]
@@ -47,15 +47,15 @@ def uploaded_file(filename):
 def index():
     find_username = request.cookies.get('username')
     find_password = request.cookies.get('password')
-    args = {
-        'path': request.url_root,
-        'url': request.url,
-        'app_settings': app_settings(),
-        'categories': arrays.categories(),
-        'username': find_username,
-        'profile': functions.get_user(),
-    }
     if find_username and find_password:
+        args = {
+            'path': request.url_root,
+            'url': request.url,
+            'app_settings': app_settings(),
+            'categories': arrays.categories(),
+            'username': find_username,
+            'profile': functions.get_user(),
+        }
         return render_template('index.html', **args)
     else:
         if request.method == 'POST':
@@ -81,14 +81,17 @@ def index():
 @app.route('/admin/')
 @app.route('/admin/<page>/')
 @app.route('/admin/<page>/<task>/', methods=['GET', 'POST'])
-def admin(page=None, task=None):
+@app.route('/admin/<page>/<task>/<action>/', methods=['GET', 'POST'])
+def admin(page=None, task=None, action=None):
+    edit = None
     args = {
         'app_settings': app_settings(),
         'stats': arrays.stats(),
         'categories': arrays.categories(),
         'mcats': arrays.mcategories(),
         'users': arrays.users(),
-        'subcats': arrays.scategories()
+        'subcats': arrays.scategories(),
+        'edit': edit,
     }
     user = functions.get_user()
     if not functions.islogin() or user[0]["privileges"] == 0:
@@ -98,15 +101,23 @@ def admin(page=None, task=None):
         return render_template('admin.html', **args)
     elif page == 'categories':
         if task == 'addm' and request.method == 'POST':
-            return render_template('/admin/categories.html', **args)
+            name = request.form['name']
+            if not name == "":
+                functions.query_db2("INSERT INTO categories (name) VALUES (?)", [name])
         elif task == 'add' and request.method == 'POST':
-            return render_template('/admin/categories.html', **args)
-        elif task == 'edit' and request.method == 'POST':
-            return render_template('/admin/categories.html', **args)
+            name = request.form['name']
+            categorie = request.form['maincategorie']
+            if not name == "":
+                functions.query_db2("INSERT INTO sub_categories (name, cat_id) VALUES (?, ?)", [name, categorie])
+        # elif task == 'edit' and request.method == 'POST':
+        #     edit = True
         elif task == 'delete' and request.method == 'POST':
-            return render_template('/admin/categories.html', **args)
-        else:
-            return render_template('/admin/categories.html', **args)
+            print('a')
+
+        if task == 'edit':
+            edit = True
+
+        return render_template('/admin/categories.html', **args)
     elif page == 'users':
         if task == 'add' and request.method == 'POST':
             username = request.form["username"]
@@ -118,10 +129,10 @@ def admin(page=None, task=None):
                 msg = "Потребителя е добавен"
                 functions.query_db2("INSERT INTO users (username, password, privileges) VALUES (?, ?, ?)", [username, password, privilege])
             return render_template('/admin/users.html', **args, msg=msg)
-        elif task == 'edit' and request.method == 'POST':
-            return render_template('/admin/users.html', **args)
-        elif task == 'delete' and request.method == 'POST':
-            return render_template('/admin/users.html', **args)
+        elif task == 'delete':
+            functions.query_db2("DELETE FROM users WHERE id = ?", [action])
+            red = make_response(redirect('/admin/users/'))
+            return red
         else:
             return render_template('/admin/users.html', **args)
     elif page == 'topics':
@@ -131,14 +142,16 @@ def admin(page=None, task=None):
             cat = request.form['cat']
             if 'file' in request.files:
                 file = request.files['file']
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                if not file.filename == '':
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                else:
+                    filename = ""
             else:
                 filename = ""
             if title == "" or text == "":
                 msg = "Моля попълнете всички полета"
             else:
-                print(filename)
                 msg = "Темата е добавена"
                 functions.query_db2("INSERT INTO topics (title, text, cat, linked_upload) VALUES (?, ?, ?, ?)", [title, text, cat, filename])
             return render_template('/admin/topics.html', **args, msg=msg)
@@ -155,7 +168,8 @@ def logout():
 @app.route('/categories/<int:cat_id>/')
 def categorys(cat_id):
     if functions.islogin() == False:
-        return render_template('login.html')
+        red = make_response(redirect('/'))
+        return red
     topics = []
     args = {
         'path': request.url_root,
@@ -173,26 +187,47 @@ def categorys(cat_id):
     return render_template('categories.html', **args)
 
 @app.route('/view/<int:topic_id>/')
-@app.route('/view/<int:topic_id>/<task>/')
+@app.route('/view/<int:topic_id>/<task>/', methods=['GET', 'POST'])
 def view_topic(topic_id, task=None):
     print_topic = []
+    edit, delete = None, None
+    if functions.islogin() == False:
+        red = make_response(redirect('/'))
+        return red
+    user = functions.get_user()
+    if task == '':
+        if user[0]["privileges"] == 0:
+            red = make_response(redirect('/'))
+            return red
+
+    if user[0]["privileges"] == 1:
+        if task == 'edit' and request.method == 'POST':
+            title = request.form['title']
+            text = request.form['text']
+            functions.query_db2("UPDATE topics SET title = ?, text = ? WHERE id = ?", [title, text, topic_id])
+            red = make_response(redirect('/view/' + str(topic_id) + '/'))
+            return red
+        if task == 'delete':
+            functions.query_db2("DELETE FROM topics WHERE id = ?", [topic_id])
+            red = make_response(redirect('/'))
+            return red
+
+        elif task == 'edit':
+            edit = True
+        elif task == 'delete':
+            delete = True
+
     args = {
         'path': request.url_root,
         'url': request.url,
         'app_settings': app_settings(),
         'categories': arrays.categories(),
         'profile': functions.get_user(),
-        'topic': print_topic
+        'topic': print_topic,
+        'edit': edit,
+        'delete': delete,
+        'topic_id': topic_id
     }
-    if functions.islogin() == False:
-        return render_template('login.html')
-    if task == '':
-        user = functions.get_user()
-        if user[0]["privileges"] == 0:
-            red = make_response(redirect('/'))
-            return red
-        else:
-            return render_template('view.html', **args)
     topic = {}
     for row in functions.query_db('SELECT * FROM topics WHERE id = ? Limit 1', [topic_id]):
         topic["title"] = Markup(row["title"])
@@ -201,12 +236,17 @@ def view_topic(topic_id, task=None):
         topic["upload"] = row["linked_upload"]
     print_topic.append(topic)
 
+    if topic == {}:
+        red = make_response(redirect('/'))
+        return red
+
     return render_template('view.html', **args)
 
 @app.route('/download/<filename>')
 def download(filename):
     if functions.islogin() == False:
-        return render_template('login.html')
+        red = make_response(redirect('/'))
+        return red
 
     path_filename = './content/%s' % filename
     return send_file(path_filename, as_attachment=True)
@@ -217,7 +257,7 @@ def not_found(error):
     return red
 
 if __name__ == "__main__":
-    #context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    #context.load_cert_chain('/ssl/host.crt', '/ssl/aiae.key')
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain('./ssl/host.crt', './ssl/aiae.key')
 
-    app.run(debug=True, port=7294, ssl_context=None, threaded=False, host='0.0.0.0')
+    app.run(debug=True, port=7002, ssl_context=context, threaded=False, host='0.0.0.0')
