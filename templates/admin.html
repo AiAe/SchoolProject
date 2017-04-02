@@ -12,7 +12,7 @@
     <div class="container">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">{{ app_settings[0] }}</a>
+                <a class="navbar-brand" href="#">Админ панел</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
@@ -26,16 +26,16 @@
 </nav>
 <div class="container">
     <div class="col-md-12">
-        <div class="panel panel-primary">
+        <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">Статистика</h3>
             </div>
             <div class="panel-body">
-            <ul>
-                {% for row in stats %}
-                <li>{{ row["name"] }} - {{ row["count"] }}</li>
-                {% endfor %}
-            </ul>
+                <ul>
+                    {% for row in stats %}
+                    <li>{{ row["name"] }} - {{ row["count"] }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </div>

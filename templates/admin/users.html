@@ -12,7 +12,7 @@
     <div class="container">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">{{ app_settings[0] }}</a>
+                <a class="navbar-brand" href="#">Админ панел</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
@@ -31,7 +31,7 @@
             {{ msg }}
         </div>
         {% endif %}
-        <div class="panel panel-primary">
+        <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">Потребители</h3>
             </div>
@@ -41,7 +41,6 @@
                     <li class="list-group-item">
                         {{ row["name"] }} <span class="label label-info">{{ row["privileges"] }}</span>
                         <div style="float: right;">
-                            <a href='/admin/users/edit/{{ row["id"] }}'><span class="label label-default">Редактирай</span></a>
                             <a href='/admin/users/delete/{{ row["id"] }}'><span class="label label-default">Изтрий</span></a>
                         </div>
                     </li>
@@ -49,7 +48,7 @@
                 </ul>
             </div>
         </div>
-        <div class="panel panel-primary">
+        <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">Нов потребител</h3>
             </div>
@@ -78,7 +77,7 @@
                     </div>
                     <div class="form-group">
                         <div class="col-lg-10 col-lg-offset-2">
-                            <input type="submit" name="submit" class="btn btn-primary" value="Добави">
+                            <input type="submit" name="submit" class="btn btn-info" value="Добави">
                         </div>
                     </div>
                 </form>

@@ -12,7 +12,7 @@
   <div class="container">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">{{ app_settings[0] }}</a>
+      <a class="navbar-brand" href="#">Админ панел</a>
     </div>
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
@@ -26,26 +26,27 @@
 </nav>
 <div class="container">
     <div class="col-md-12">
-        <div class="panel panel-primary">
+        <div class="panel panel-info">
             <div class="panel-heading">
+                <div style="float: right;">
+                    <a href='/admin/categories/edit/'><span class="label label-default">Редактирай</span></a>
+                </div>
                 <h3 class="panel-title">Категории</h3>
             </div>
             <div class="panel-body">
         {% for row in categories %}
         <div class="list-group">
-            <li class="list-group-item active">
+            <li class="list-group-item" style="background: #029ACF; color: white;">
                 {{ row["name"] }}
                 <div style="float: right;">
-                    <a href='/admin/categories/edit/{{ row["id"] }}'><span class="label label-default">Редактирай</span></a>
-                    <a href='/admin/categories/delete/{{ row["id"] }}'><span class="label label-default">Изтрий</span></a>
+                    <a href='/admin/categories/mdelete/{{ row["id"] }}'><span class="label label-default">Изтрий</span></a>
                 </div>
             </li>
             {% for row2 in row["sub"] %}
             <li class="list-group-item">
                 {{ row2["name"] }}
                 <div style="float: right;">
-                    <a href='/admin/categories/edit/{{ row2["id"] }}'><span class="label label-primary">Редактирай</span></a>
-                    <a href='/admin/categories/delete/{{ row2["id"] }}'><span class="label label-primary">Изтрий</span></a>
+                    <a href='/admin/categories/sdelete/{{ row2["id"] }}'><span class="label label-info">Изтрий</span></a>
                 </div>
             </li>
             {% endfor %}
@@ -53,12 +54,13 @@
         {% endfor %}
             </div>
         </div>
-        <div class="panel panel-primary">
+        {% if not edit%}
+        <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">Добави главна категория</h3>
             </div>
             <div class="panel-body">
-                <form class="form-horizontal" method="post" action="/admin/users/add/">
+                <form class="form-horizontal" method="post" action="/admin/categories/addm/">
                     <div class="form-group">
                         <label class="col-lg-2 control-label">Име на категория</label>
                         <div class="col-lg-10">
@@ -67,28 +69,28 @@
                     </div>
                     <div class="form-group">
                         <div class="col-lg-10 col-lg-offset-2">
-                            <input type="submit" name="submit" class="btn btn-primary" value="Добави">
+                            <input type="submit" name="submit" class="btn btn-info" value="Добави">
                         </div>
                     </div>
                 </form>
             </div>
-    </div>
-        <div class="panel panel-primary">
+        </div>
+        <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">Добави под категория</h3>
             </div>
             <div class="panel-body">
-                <form class="form-horizontal" method="post" action="/admin/users/add/">
+                <form class="form-horizontal" method="post" action="/admin/categories/add/">
                     <div class="form-group">
                         <label class="col-lg-2 control-label">Име на под категория</label>
                         <div class="col-lg-10">
-                            <input type="text" class="form-control" name="username">
+                            <input type="text" class="form-control" name="name">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-lg-2 control-label">Главна категория</label>
                         <div class="col-lg-10">
-                            <select class="form-control" name="privilege">
+                            <select class="form-control" name="maincategorie">
                                 {% for row in mcats %}
                                 <option value='{{ row["id"] }}'>{{ row["name"] }}</option>
                                 {% endfor %}
@@ -97,11 +99,14 @@
                     </div>
                     <div class="form-group">
                         <div class="col-lg-10 col-lg-offset-2">
-                            <input type="submit" name="submit" class="btn btn-primary" value="Добави">
+                            <input type="submit" name="submit" class="btn btn-info" value="Добави">
                         </div>
                     </div>
                 </form>
             </div>
+            {% else %}
+                a
+            {% endif %}
 </div>
 <script type="text/javascript" src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.10.2.min.js') }}"></script>
